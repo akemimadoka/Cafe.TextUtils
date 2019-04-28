@@ -15,5 +15,4 @@ install(DIRECTORY include/
     FILES_MATCHING PATTERN "*.h")
 
 install(EXPORT TextUtils.Format
-    NAMESPACE Cafe.
     DESTINATION cmake/TextUtils.Format)

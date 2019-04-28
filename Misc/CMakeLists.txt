@@ -20,5 +20,4 @@ install(DIRECTORY include/
     FILES_MATCHING PATTERN "*.h")
 
 install(EXPORT TextUtils.Misc
-    NAMESPACE Cafe.
     DESTINATION cmake/TextUtils.Misc)
