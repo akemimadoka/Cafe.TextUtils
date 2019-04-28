@@ -18,14 +18,14 @@ namespace Cafe::TextUtils
 
 		const Core::Misc::NumericInterval<Encoding::CodePointType> DecimalCodePointValue{
 			{ '0', true },
-			{ static_cast<Encoding::CodePointType>('0' + std::min(base, std::size_t{ 10 }) - 1), true }
+			{ static_cast<Encoding::CodePointType>('0' + std::min(base, std::size_t{ 10 })), false }
 		};
 		// 若 base 不大于 10 时将会是空集，不需要特殊处理，下同
 		const Core::Misc::NumericInterval<Encoding::CodePointType> OverDecimalCodePointValue{
-			{ 'A', true }, { static_cast<Encoding::CodePointType>('A' + base - 11), true }
+			{ 'A', true }, { static_cast<Encoding::CodePointType>('A' + base - 10), false }
 		};
 		const Core::Misc::NumericInterval<Encoding::CodePointType> OverDecimalCodePointValue2{
-			{ 'a', true }, { static_cast<Encoding::CodePointType>('a' + base - 11), true }
+			{ 'a', true }, { static_cast<Encoding::CodePointType>('a' + base - 10), false }
 		};
 
 		std::uintmax_t result{};
@@ -286,7 +286,7 @@ namespace Cafe::TextUtils
 						    std::forward<OutputReceiver>(receiver)(result.Result);
 					    }
 				    });
-				value *= significantDecimal;
+				value *= Core::Misc::Math::Pow(10, significantDecimal);
 				IntegerToString(static_cast<std::intmax_t>(value), Encoding::StringView<CodePageValue>{},
 				                std::forward<OutputReceiver>(receiver));
 			}
@@ -309,6 +309,19 @@ namespace Cafe::TextUtils
 			std::forward<OutputReceiver>(receiver)(tmpStr.GetView().GetSpan());
 			m_InternalBuffer.str({});
 			m_InternalBuffer.clear();
+		}
+	};
+
+	struct StdToStringStringConverter
+	{
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
+		void ToString(T const& value,
+		              [[maybe_unused]] Encoding::StringView<CodePageValue> const& formatOption,
+		              OutputReceiver&& receiver)
+		{
+			const auto result = std::to_string(value);
+			const auto tmpStr = EncodeFromNarrow<CodePageValue>(result);
+			std::forward<OutputReceiver>(receiver)(tmpStr.GetView().GetSpan());
 		}
 	};
 
