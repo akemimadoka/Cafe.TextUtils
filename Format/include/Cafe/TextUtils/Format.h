@@ -343,7 +343,7 @@ namespace Cafe::TextUtils
 		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
 		static constexpr std::pair<bool, std::size_t>
 		BeginWith(Encoding::StringView<CodePageValue, Extent> const& format,
-		          Encoding::CodePointType codePoint)
+		          Encoding::CodePointType codePoint) noexcept
 		{
 			if (format.IsEmpty())
 			{
@@ -371,6 +371,52 @@ namespace Cafe::TextUtils
 				}
 			});
 
+			return result;
+		}
+
+		// TODO: 是否可针对非编译期的情况优化？例如使用 SIMD
+		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+		static constexpr std::size_t SkipUntil(Encoding::StringView<CodePageValue, Extent> format,
+		                                       Encoding::CodePointType codePoint) noexcept
+		{
+			if (format.IsEmpty())
+			{
+				return 0;
+			}
+
+			using Trait = Encoding::CodePage::CodePageTrait<CodePageValue>;
+			std::size_t result{};
+			auto shouldStop = false;
+			do
+			{
+				Trait::ToCodePoint(format.GetSpan(), [&](auto const& encodingResult) {
+					if constexpr (Encoding::GetEncodingResultCode<decltype(encodingResult)> ==
+					              Encoding::EncodingResultCode::Accept)
+					{
+						shouldStop = encodingResult.Result == codePoint;
+						// 到匹配之时即停止，不消费匹配的值
+						if (!shouldStop)
+						{
+							if constexpr (Trait::IsVariableWidth)
+							{
+								result += encodingResult.AdvanceCount;
+								format = format.SubStr(encodingResult.AdvanceCount);
+							}
+							else
+							{
+								++result;
+								format = format.SubStr(1);
+							}
+						}
+					}
+					else
+					{
+						// 编码失败，此时不与要寻找的值匹配因此增加并继续
+						++result;
+						format = format.SubStr(1);
+					}
+				});
+			} while (!shouldStop && !format.IsEmpty());
 			return result;
 		}
 
@@ -470,7 +516,9 @@ namespace Cafe::TextUtils
 			const auto beginWithFormatPrefix = BeginWith(format, FormatPrefix);
 			if (!beginWithFormatPrefix.first)
 			{
-				return { {}, beginWithFormatPrefix.second };
+				const auto skippedLength =
+				    SkipUntil(format.SubStr(beginWithFormatPrefix.second), FormatPrefix);
+				return { {}, beginWithFormatPrefix.second + skippedLength };
 			}
 
 			auto result = ParseFormatInfo(format.SubStr(beginWithFormatPrefix.second));
