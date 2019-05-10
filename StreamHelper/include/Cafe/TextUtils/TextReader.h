@@ -2,6 +2,7 @@
 
 #include <Cafe/Encoding/Strings.h>
 #include <Cafe/Io/Streams/BufferedStream.h>
+#include <Cafe/TextUtils/Misc.h>
 
 namespace Cafe::TextUtils
 {
@@ -20,63 +21,99 @@ namespace Cafe::TextUtils
 		{
 			using Trait = Encoding::CodePage::CodePageTrait<CodePageValue>;
 			using CharType = typename Trait::CharType;
-			CharType buffer[Encoding::CodePage::GetMaxWidth<CodePageValue>()];
-			std::size_t totalReadSize{};
-			while (totalReadSize < Encoding::CodePage::GetMaxWidth<CodePageValue>())
+			if constexpr (Trait::IsVariableWidth)
 			{
-				const auto readSize = [&] {
-					if constexpr (Read)
-					{
-						return m_Stream.ReadBytes(
-						    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
-					}
-					else
-					{
-						return m_Stream.PeekBytes(
-						    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
-					}
-				}();
-				if (!readSize)
+				CharType buffer[Encoding::CodePage::GetMaxWidth<CodePageValue>()];
+				std::size_t totalReadSize{};
+				while (totalReadSize < Encoding::CodePage::GetMaxWidth<CodePageValue>())
 				{
-					// 若还未读取任何编码单元，仅直接返回空值表示流已到结尾，否则读取的不完整，应当抛出异常
-					if (totalReadSize)
+					const auto readSize = [&] {
+						if constexpr (Read)
+						{
+							return m_Stream.ReadBytes(
+							    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
+						}
+						else
+						{
+							return m_Stream.PeekBytes(
+							    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
+						}
+					}();
+					if (!readSize)
 					{
+						// 若还未读取任何编码单元，仅直接返回空值表示流已到结尾，否则读取的不完整，应当抛出异常
+						if (totalReadSize)
+						{
+							CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("End of stream."));
+						}
+
+						return {};
+					}
+					if (readSize % sizeof(CharType))
+					{
+						// 不完整读取，可能流已到结尾
 						CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("End of stream."));
 					}
 
+					++totalReadSize;
+
+					Encoding::CodePointType mayBeCodePoint;
+					Encoding::EncodingResultCode resultCode;
+					Trait::ToCodePoint(gsl::make_span(std::as_const(buffer), totalReadSize),
+					                   [&](auto const& result) {
+						                   if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
+						                                 Encoding::EncodingResultCode::Accept)
+						                   {
+							                   mayBeCodePoint = result.Result;
+						                   }
+						                   resultCode = Encoding::GetEncodingResultCode<decltype(result)>;
+					                   });
+
+					switch (resultCode)
+					{
+					case Encoding::EncodingResultCode::Accept:
+						return { { Encoding::AsView<CodePageValue>(
+							             gsl::make_span(std::as_const(buffer), totalReadSize)),
+							         mayBeCodePoint } };
+					case Encoding::EncodingResultCode::Incomplete:
+						break;
+					case Encoding::EncodingResultCode::Reject:
+						CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed."));
+					}
+				}
+
+				CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed."));
+			}
+			else
+			{
+				CharType result;
+				const auto readSize =
+				    m_Stream.ReadBytes(gsl::as_writeable_bytes(gsl::make_span(&result, 1)));
+				if (readSize == sizeof(CharType))
+				{
+					Encoding::CodePointType mayBeCodePoint;
+					Encoding::EncodingResultCode resultCode;
+					Trait::ToCodePoint(result, [&](auto const& result) {
+						if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
+						              Encoding::EncodingResultCode::Accept)
+						{
+							mayBeCodePoint = result.Result;
+						}
+						resultCode = Encoding::GetEncodingResultCode<decltype(result)>;
+					});
+					if (resultCode == Encoding::EncodingResultCode::Accept)
+					{
+						return { { Encoding::AsView<CodePageValue>(gsl::make_span(&std::as_const(result), 1)),
+							         mayBeCodePoint } };
+					}
+				}
+				else if (!readSize)
+				{
 					return {};
 				}
-				if (readSize % sizeof(CharType))
-				{
-					// 不完整读取，可能流已到结尾
-					CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("End of stream."));
-				}
 
-				++totalReadSize;
-
-				Encoding::CodePointType mayBeCodePoint;
-				Encoding::EncodingResultCode resultCode;
-				Trait::ToCodePoint(gsl::make_span(buffer, totalReadSize), [&](auto const& result) {
-					if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
-					              Encoding::EncodingResultCode::Accept)
-					{
-						mayBeCodePoint = result.Result;
-					}
-					resultCode = Encoding::GetEncodingResultCode<decltype(result)>;
-				});
-
-				switch (resultCode)
-				{
-				case Encoding::EncodingResultCode::Accept:
-					return { std::in_place, gsl::make_span(buffer, totalReadSize), mayBeCodePoint };
-				case Encoding::EncodingResultCode::Incomplete:
-					break;
-				case Encoding::EncodingResultCode::Reject:
-					CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed."));
-				}
+				CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed."));
 			}
-
-			CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed."));
 		}
 
 	public:

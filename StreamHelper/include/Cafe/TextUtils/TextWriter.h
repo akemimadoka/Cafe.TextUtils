@@ -19,12 +19,17 @@ namespace Cafe::TextUtils
 		{
 		}
 
+		void Flush()
+		{
+			m_Stream.Flush();
+		}
+
 		template <typename... Args>
 		std::size_t Write(Encoding::StringView<CodePageValue> const& format, Args const&... args)
 		{
 			if constexpr (!sizeof...(args))
 			{
-				return m_Stream.WriteBytes(gsl::as_bytes(str.GetTrimmedSpan()));
+				return m_Stream.WriteBytes(gsl::as_bytes(format.GetTrimmedSpan()));
 			}
 			else
 			{
@@ -44,7 +49,7 @@ namespace Cafe::TextUtils
 				{
 					if constexpr (UsingTrait::IsVariableWidth)
 					{
-						writtenBytes += m_Stream.WriteBytes(result.Result);
+						writtenBytes += m_Stream.WriteBytes(gsl::as_bytes(result.Result));
 					}
 					else
 					{
