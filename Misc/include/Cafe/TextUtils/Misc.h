@@ -5,6 +5,7 @@
 
 #if __has_include(<Cafe/Encoding/RuntimeEncoding.h>)
 #	include <Cafe/Encoding/RuntimeEncoding.h>
+#	include <vector>
 #endif
 
 namespace Cafe::TextUtils
@@ -108,8 +109,8 @@ namespace Cafe::TextUtils
 #if __has_include(<Cafe/Encoding/RuntimeEncoding.h>)
 
 	template <Encoding::CodePage::CodePageType ToCodePage>
-	Encoding::String<ToCodePage> EncodingFromRuntime(Encoding::CodePage::CodePageType fromCodePage,
-	                                                 gsl::span<const std::byte> const& span)
+	Encoding::String<ToCodePage> EncodeFromRuntime(Encoding::CodePage::CodePageType fromCodePage,
+	                                               gsl::span<const std::byte> const& span)
 	{
 		Encoding::String<ToCodePage> resultStr;
 		resultStr.Reserve(span.size());
@@ -127,12 +128,36 @@ namespace Cafe::TextUtils
 		return resultStr;
 	}
 
+	template <Encoding::CodePage::CodePageType FromCodePage>
+	std::vector<std::byte> EncodeToRuntime(Encoding::StringView<FromCodePage> const& str,
+	                                       Encoding::CodePage::CodePageType toCodePage)
+	{
+		std::vector<std::byte> resultVec;
+		resultVec.reserve(str.GetSize());
+		Encoding::RuntimeEncoding::RuntimeEncoder<FromCodePage>::EncodeAllTo(
+		    str.GetSpan(), toCodePage, [&](auto const& result) {
+			    if (result.ResultCode == Encoding::EncodingResultCode::Accept)
+			    {
+				    resultVec.insert(resultVec.end(), result.Result.cbegin(), result.Result.cend());
+			    }
+			    else
+			    {
+				    CAFE_THROW(EncodingFailedException, CAFE_UTF8_SV("Encoding failed"));
+			    }
+		    });
+		return resultVec;
+	}
+
+	CAFE_PUBLIC std::vector<std::byte> EncodeRuntime(Encoding::CodePage::CodePageType fromCodePage,
+	                                                 gsl::span<const std::byte> const& span,
+	                                                 Encoding::CodePage::CodePageType toCodePage);
+
 #	ifdef _WIN32
 	template <Encoding::CodePage::CodePageType ToCodePage>
 	Encoding::String<ToCodePage> EncodeFromNarrow(std::string_view const& str)
 	{
-		return EncodingFromRuntime<ToCodePage>(Encoding::RuntimeEncoding::GetAnsiEncoding(),
-		                                       gsl::as_bytes(gsl::make_span(str.data(), str.size())));
+		return EncodeFromRuntime<ToCodePage>(Encoding::RuntimeEncoding::GetAnsiEncoding(),
+		                                     gsl::as_bytes(gsl::make_span(str.data(), str.size())));
 	}
 
 	template <Encoding::CodePage::CodePageType FromCodePage>
@@ -141,7 +166,8 @@ namespace Cafe::TextUtils
 		std::string resultStr;
 		resultStr.reserve(str.GetSize());
 		Encoding::RuntimeEncoding::RuntimeEncoder<FromCodePage>::EncodeAllTo(
-		    Encoding::RuntimeEncoding::GetAnsiEncoding(), str.GetTrimmedSpan(), [&](auto const& result) {
+		    Encoding::RuntimeEncoding::GetAnsiEncoding(), str.GetTrimmedSpan(),
+		    [&](auto const& result) {
 			    if (result.ResultCode == Encoding::EncodingResultCode::Accept)
 			    {
 				    resultStr.append(reinterpret_cast<const char*>(result.Result.data()),

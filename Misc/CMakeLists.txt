@@ -1,14 +1,21 @@
-add_library(Cafe.TextUtils.Misc INTERFACE)
+set(SOURCE_FILES
+    src/Misc.cpp)
 
-target_include_directories(Cafe.TextUtils.Misc INTERFACE
+set(HEADERS
+    include/Cafe/TextUtils/CodePointIterator.h
+    include/Cafe/TextUtils/Misc.h)
+
+add_library(Cafe.TextUtils.Misc ${SOURCE_FILES} ${HEADERS})
+
+target_include_directories(Cafe.TextUtils.Misc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-target_link_libraries(Cafe.TextUtils.Misc INTERFACE
+target_link_libraries(Cafe.TextUtils.Misc PUBLIC
     Cafe.Encoding.Base Cafe.ErrorHandling)
 
 if(TARGET Cafe.Encoding.RuntimeEncoding)
-    target_link_libraries(Cafe.TextUtils.Misc INTERFACE
+    target_link_libraries(Cafe.TextUtils.Misc PUBLIC
         Cafe.Encoding.RuntimeEncoding)
 endif()
 

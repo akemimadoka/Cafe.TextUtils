@@ -19,6 +19,8 @@ TEST_CASE("Cafe.TextUtils.StreamHelper", "[TextUtils][StreamHelper]")
 		writer.WriteLine(TestString);
 		writer.Flush();
 
+		REQUIRE(stream.GetPosition() == 7);
+
 		const auto internalStorage = stream.GetInternalStorage();
 		REQUIRE(std::memcmp(internalStorage.data(), TestString.GetData(), TestString.GetSize() - 1) ==
 		        0);
@@ -28,6 +30,8 @@ TEST_CASE("Cafe.TextUtils.StreamHelper", "[TextUtils][StreamHelper]")
 
 		TextReader<CodePage::Utf8> reader{ &stream };
 		const auto line = reader.ReadLine();
+
+		REQUIRE(stream.GetPosition() == 7);
 
 		REQUIRE(line == TestString);
 	}
