@@ -5,7 +5,7 @@
 
 #if __has_include(<Cafe/Encoding/RuntimeEncoding.h>)
 #	include <Cafe/Encoding/RuntimeEncoding.h>
-#	include <vector>
+#	include <Cafe/Misc/Environment.h>
 #endif
 
 namespace Cafe::TextUtils
@@ -148,15 +148,11 @@ namespace Cafe::TextUtils
 		return resultVec;
 	}
 
-	CAFE_PUBLIC std::vector<std::byte> EncodeRuntime(Encoding::CodePage::CodePageType fromCodePage,
-	                                                 gsl::span<const std::byte> const& span,
-	                                                 Encoding::CodePage::CodePageType toCodePage);
-
 #	ifdef _WIN32
 	template <Encoding::CodePage::CodePageType ToCodePage>
 	Encoding::String<ToCodePage> EncodeFromNarrow(std::string_view const& str)
 	{
-		return EncodeFromRuntime<ToCodePage>(Encoding::RuntimeEncoding::GetAnsiEncoding(),
+		return EncodeFromRuntime<ToCodePage>(Environment::GetNarrowEncoding(),
 		                                     gsl::as_bytes(gsl::make_span(str.data(), str.size())));
 	}
 
@@ -166,8 +162,7 @@ namespace Cafe::TextUtils
 		std::string resultStr;
 		resultStr.reserve(str.GetSize());
 		Encoding::RuntimeEncoding::RuntimeEncoder<FromCodePage>::EncodeAllTo(
-		    Encoding::RuntimeEncoding::GetAnsiEncoding(), str.GetTrimmedSpan(),
-		    [&](auto const& result) {
+		    Environment::GetNarrowEncoding(), str.GetTrimmedSpan(), [&](auto const& result) {
 			    if (result.ResultCode == Encoding::EncodingResultCode::Accept)
 			    {
 				    resultStr.append(reinterpret_cast<const char*>(result.Result.data()),
@@ -197,7 +192,7 @@ namespace Cafe::TextUtils
 	std::wstring EncodeToWide(Encoding::StringView<FromCodePage> const& str)
 	{
 		const auto tmpStr = EncodeTo<Encoding::CodePage::Utf16LittleEndian>(str);
-		return std::wstring(tmpStr.GetData(), tmpStr.GetSize());
+		return std::wstring(reinterpret_cast<const wchar_t*>(tmpStr.GetData()), tmpStr.GetSize());
 	}
 #endif
 
@@ -220,6 +215,23 @@ namespace Cafe::TextUtils
 		static_assert(sizeof(Utf8CharType) == sizeof(char) && alignof(Utf8CharType) == alignof(char));
 		const auto tmpStr = EncodeTo<Encoding::CodePage::Utf8>(str);
 		return std::string(reinterpret_cast<const char*>(tmpStr.GetData()), tmpStr.GetSize());
+	}
+
+	static_assert(sizeof(wchar_t) == sizeof(Encoding::CodePointType) &&
+	              alignof(wchar_t) == alignof(Encoding::CodePointType));
+
+	template <Encoding::CodePage::CodePageType ToCodePage>
+	Encoding::String<ToCodePage> EncodeFromWide(std::wstring_view const& str)
+	{
+		return EncodeTo<ToCodePage>(Encoding::StringView<Encoding::CodePage::CodePoint>(
+		    gsl::make_span(reinterpret_cast<const Encoding::CodePointType*>(str.data()), str.size())));
+	}
+
+	template <Encoding::CodePage::CodePageType FromCodePage>
+	std::wstring EncodeToWide(Encoding::StringView<FromCodePage> const& str)
+	{
+		const auto tmpStr = EncodeTo<Encoding::CodePage::CodePoint>(str);
+		return std::wstring(reinterpret_cast<const wchar_t*>(tmpStr.GetData()), tmpStr.GetSize());
 	}
 #endif
 } // namespace Cafe::TextUtils

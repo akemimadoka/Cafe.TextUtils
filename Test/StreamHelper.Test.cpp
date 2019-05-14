@@ -19,7 +19,12 @@ TEST_CASE("Cafe.TextUtils.StreamHelper", "[TextUtils][StreamHelper]")
 		writer.WriteLine(TestString);
 		writer.Flush();
 
+#ifdef _WIN32
+		// Windows 下换行为 \r\n
+		REQUIRE(stream.GetPosition() == 8);
+#else
 		REQUIRE(stream.GetPosition() == 7);
+#endif
 
 		const auto internalStorage = stream.GetInternalStorage();
 		REQUIRE(std::memcmp(internalStorage.data(), TestString.GetData(), TestString.GetSize() - 1) ==
@@ -31,7 +36,11 @@ TEST_CASE("Cafe.TextUtils.StreamHelper", "[TextUtils][StreamHelper]")
 		TextReader<CodePage::Utf8> reader{ &stream };
 		const auto line = reader.ReadLine();
 
+#ifdef _WIN32
+		REQUIRE(stream.GetPosition() == 8);
+#else
 		REQUIRE(stream.GetPosition() == 7);
+#endif
 
 		REQUIRE(line == TestString);
 	}

@@ -2,6 +2,7 @@
 
 #include <Cafe/Encoding/Strings.h>
 #include <Cafe/Io/Streams/BufferedStream.h>
+#include <Cafe/Misc/Environment.h>
 #include <Cafe/TextUtils/Format.h>
 
 namespace Cafe::TextUtils
@@ -9,6 +10,7 @@ namespace Cafe::TextUtils
 	/// @brief  文本写入类
 	/// @remark 与常见的设计不同，本类不取得包装的流的所有权，
 	///         因此必须由用户手动管理并保证包装的流的生命期在文本写入类的生命期全程都有效
+	///         且析构时不会自动关闭包装的类
 	template <Encoding::CodePage::CodePageType CodePageValue>
 	class TextWriter
 	{
@@ -43,20 +45,26 @@ namespace Cafe::TextUtils
 		{
 			using UsingTrait = Encoding::CodePage::CodePageTrait<CodePageValue>;
 			auto writtenBytes = Write(format, args...);
-			UsingTrait::FromCodePoint('\n', [&](auto const& result) {
-				if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
-				              Encoding::EncodingResultCode::Accept)
-				{
-					if constexpr (UsingTrait::IsVariableWidth)
-					{
-						writtenBytes += m_Stream.WriteBytes(gsl::as_bytes(result.Result));
-					}
-					else
-					{
-						writtenBytes += m_Stream.WriteBytes(gsl::as_bytes(gsl::make_span(&result.Result, 1)));
-					}
-				}
-			});
+			Encoding::Encoder<Encoding::CodePage::Utf8, CodePageValue>::EncodeAll(
+			    Environment::GetNewLine().GetTrimmedSpan(), [&](auto const& result) {
+				    if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
+				                  Encoding::EncodingResultCode::Accept)
+				    {
+					    if constexpr (UsingTrait::IsVariableWidth)
+					    {
+						    writtenBytes += m_Stream.WriteBytes(gsl::as_bytes(result.Result));
+					    }
+					    else
+					    {
+						    writtenBytes +=
+						        m_Stream.WriteBytes(gsl::as_bytes(gsl::make_span(&result.Result, 1)));
+					    }
+				    }
+				    else
+				    {
+					    assert(!"Should never happen.");
+				    }
+			    });
 
 			return writtenBytes;
 		}
