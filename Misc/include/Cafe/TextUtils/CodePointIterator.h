@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Cafe/Encoding/Encode.h>
 #include <Cafe/ErrorHandling/ErrorHandling.h>
 #include <optional>

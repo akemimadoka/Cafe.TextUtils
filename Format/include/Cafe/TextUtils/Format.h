@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Cafe/Encoding/Strings.h>
 #include <Cafe/Misc/Math.h>
 #include <Cafe/Misc/NumericInterval.h>
