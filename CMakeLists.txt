@@ -1,6 +1,6 @@
 set(CAFE_INCLUDE_TEXT_UTILS_MISC ON CACHE BOOL "Include Cafe.TextUtils.Misc")
 set(CAFE_INCLUDE_TEXT_UTILS_FORMAT ON CACHE BOOL "Include Cafe.TextUtils.Format")
-set(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPER ON CACHE BOOL "Include Cafe.TextUtils.StreamHelper")
+set(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS ON CACHE BOOL "Include Cafe.TextUtils.StreamHelpers")
 set(CAFE_INCLUDE_TEXT_UTILS_TEST ON CACHE BOOL "Include Cafe.TextUtils.Test")
 
 if(CAFE_INCLUDE_TEXT_UTILS_MISC)
@@ -14,8 +14,8 @@ if(CAFE_INCLUDE_TEXT_UTILS_FORMAT)
     add_subdirectory(Format)
 endif()
 
-if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPER)
-    add_subdirectory(StreamHelper)
+if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS)
+    add_subdirectory(StreamHelpers)
 endif()
 
 if(CAFE_INCLUDE_TESTS AND CAFE_INCLUDE_TEXT_UTILS_TEST)

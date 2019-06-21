@@ -8,8 +8,8 @@ if(CAFE_INCLUDE_TEXT_UTILS_FORMAT)
     list(APPEND SOURCE_FILES Format.Test.cpp)
 endif()
 
-if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPER)
-    list(APPEND SOURCE_FILES StreamHelper.Test.cpp)
+if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS)
+    list(APPEND SOURCE_FILES StreamHelpers.Test.cpp)
 endif()
 
 add_executable(Cafe.TextUtils.Test ${SOURCE_FILES})
@@ -27,7 +27,7 @@ if(CAFE_INCLUDE_TEXT_UTILS_FORMAT)
         Cafe.TextUtils.Format)
 endif()
 
-if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPER)
+if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS)
     target_link_libraries(Cafe.TextUtils.Test PRIVATE
-        Cafe.TextUtils.StreamHelper)
+        Cafe.TextUtils.StreamHelpers)
 endif()

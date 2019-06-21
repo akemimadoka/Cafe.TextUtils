@@ -8,7 +8,7 @@ using namespace Encoding;
 using namespace TextUtils;
 using namespace Io;
 
-TEST_CASE("Cafe.TextUtils.StreamHelper", "[TextUtils][StreamHelper]")
+TEST_CASE("Cafe.TextUtils.StreamHelpers", "[TextUtils][StreamHelpers]")
 {
 	SECTION("StreamHelpers")
 	{
