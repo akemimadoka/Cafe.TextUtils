@@ -511,8 +511,11 @@ namespace Cafe::TextUtils
 		}
 
 	public:
+		/// @brief  尝试分析格式化信息
+		/// @return 格式化信息、消耗的编码单元个数、跳过的编码单元个数
+		///         跳过的编码单元不计入消耗之中，将会直接跳过，为了处理 escape
 		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
-		static constexpr std::pair<std::optional<FormatInfo<CodePageValue>>, std::size_t>
+		static constexpr std::tuple<std::optional<FormatInfo<CodePageValue>>, std::size_t, std::size_t>
 		TryParseFormatInfo(Encoding::StringView<CodePageValue, Extent> const& format)
 		{
 			const auto beginWithFormatPrefix = BeginWith(format, FormatPrefix);
@@ -520,11 +523,19 @@ namespace Cafe::TextUtils
 			{
 				const auto skippedLength =
 				    SkipUntil(format.SubStr(beginWithFormatPrefix.second), FormatPrefix);
-				return { {}, beginWithFormatPrefix.second + skippedLength };
+				return { {}, beginWithFormatPrefix.second + skippedLength, 0 };
 			}
 
-			auto result = ParseFormatInfo(format.SubStr(beginWithFormatPrefix.second));
-			return { std::move(result.first), beginWithFormatPrefix.second + result.second };
+			const auto restFormat = format.SubStr(beginWithFormatPrefix.second);
+			const auto [secondIsFormatPrefix, consumedCount] = BeginWith(restFormat, FormatPrefix);
+			// 下一个仍然是 FormatPrefix，作为 escape 被跳过
+			if (secondIsFormatPrefix)
+			{
+				return { {}, consumedCount, beginWithFormatPrefix.second };
+			}
+
+			auto result = ParseFormatInfo(restFormat);
+			return { std::move(result.first), beginWithFormatPrefix.second + result.second, 0 };
 		}
 	};
 
@@ -538,8 +549,9 @@ namespace Cafe::TextUtils
 		const auto argsTuple = std::forward_as_tuple(args...);
 		while (true)
 		{
-			const auto [formatInfo, advanceCount] =
+			const auto [formatInfo, advanceCount, skippedCount] =
 			    std::forward<Formatter>(formatter).TryParseFormatInfo(formatStr);
+			formatStr = formatStr.SubStr(skippedCount);
 			const auto prevPos = formatStr.begin();
 			formatStr = formatStr.SubStr(advanceCount);
 			if (formatInfo.has_value())

@@ -198,6 +198,11 @@ namespace Cafe::TextUtils
 			return result;
 		}
 
+		Io::BufferedInputStream* GetStream() noexcept
+		{
+			return &m_Stream;
+		}
+
 	private:
 		Io::BufferedInputStream m_Stream;
 	};

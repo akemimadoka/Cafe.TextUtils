@@ -69,6 +69,11 @@ namespace Cafe::TextUtils
 			return writtenBytes;
 		}
 
+		Io::BufferedOutputStream* GetStream() noexcept
+		{
+			return &m_Stream;
+		}
+
 	private:
 		Io::BufferedOutputStream m_Stream;
 	};
