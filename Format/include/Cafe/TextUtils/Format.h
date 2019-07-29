@@ -341,7 +341,23 @@ namespace Cafe::TextUtils
 		static constexpr Encoding::CodePointType FormatOptionToken{ ':' };
 		static constexpr Encoding::CodePointType FormatRightQuote{ '}' };
 
+		constexpr DefaultFormatter() noexcept : m_CurrentMode{ Mode::Unknown }, m_CurrentIndex{}
+		{
+		}
+
 	private:
+		enum class Mode
+		{
+			Unknown,
+			IndexMode,
+			AutoMode,
+		};
+
+		Mode m_CurrentMode;
+
+		// 不使用索引时自动增加索引并选择参数，不可与使用索引混用
+		std::size_t m_CurrentIndex;
+
 		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
 		static constexpr std::pair<bool, std::size_t>
 		BeginWith(Encoding::StringView<CodePageValue, Extent> const& format,
@@ -423,7 +439,7 @@ namespace Cafe::TextUtils
 		}
 
 		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
-		static constexpr std::pair<FormatInfo<CodePageValue>, std::size_t>
+		constexpr std::pair<FormatInfo<CodePageValue>, std::size_t>
 		ParseFormatInfo(Encoding::StringView<CodePageValue, Extent> const& format)
 		{
 			Encoding::StringView<CodePageValue> formatStr = format;
@@ -469,18 +485,40 @@ namespace Cafe::TextUtils
 
 				if (indexBegin == prevPos)
 				{
-					CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
+					if (m_CurrentMode == Mode::IndexMode)
+					{
+						CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
+					}
+
+					m_CurrentMode = Mode::AutoMode;
 				}
-
-				const auto parsedIndex = AsciiToNumber(
-				    Encoding::StringView<CodePageValue, Extent>{ gsl::make_span(indexBegin, prevPos) });
-
-				if (parsedIndex.second != std::distance(indexBegin, prevPos))
+				else
 				{
-					CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
+					if (m_CurrentMode == Mode::AutoMode)
+					{
+						CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
+					}
+
+					m_CurrentMode = Mode::IndexMode;
 				}
 
-				result.Index = parsedIndex.first;
+				if (m_CurrentMode == Mode::IndexMode)
+				{
+					const auto parsedIndex = AsciiToNumber(
+					    Encoding::StringView<CodePageValue, Extent>{ gsl::make_span(indexBegin, prevPos) });
+
+					if (parsedIndex.second != std::distance(indexBegin, prevPos))
+					{
+						CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
+					}
+
+					result.Index = parsedIndex.first;
+				}
+				else
+				{
+					assert(m_CurrentMode == Mode::AutoMode);
+					result.Index = m_CurrentIndex++;
+				}
 
 				if (parseFormatOption)
 				{
@@ -515,7 +553,7 @@ namespace Cafe::TextUtils
 		/// @return 格式化信息、消耗的编码单元个数、跳过的编码单元个数
 		///         跳过的编码单元不计入消耗之中，将会直接跳过，为了处理 escape
 		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
-		static constexpr std::tuple<std::optional<FormatInfo<CodePageValue>>, std::size_t, std::size_t>
+		constexpr std::tuple<std::optional<FormatInfo<CodePageValue>>, std::size_t, std::size_t>
 		TryParseFormatInfo(Encoding::StringView<CodePageValue, Extent> const& format)
 		{
 			const auto beginWithFormatPrefix = BeginWith(format, FormatPrefix);
@@ -606,6 +644,17 @@ namespace Cafe::TextUtils
 		    },
 		    format, args...);
 		return size;
+	}
+
+	template <typename Allocator, std::size_t SsoThresholdSize, typename GrowPolicy,
+	          Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
+	Encoding::String<CodePageValue, Allocator, SsoThresholdSize, GrowPolicy>
+	FormatCustomString(Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
+	{
+		Encoding::String<CodePageValue, Allocator, SsoThresholdSize, GrowPolicy> resultStr;
+		FormatStringWithReceiver([&](auto const& result) { resultStr.Append(result); }, format,
+		                         args...);
+		return resultStr;
 	}
 
 	template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
