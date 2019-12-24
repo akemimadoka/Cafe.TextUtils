@@ -31,3 +31,5 @@ if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS)
     target_link_libraries(Cafe.TextUtils.Test PRIVATE
         Cafe.TextUtils.StreamHelpers)
 endif()
+
+ParseAndAddCatchTests(Cafe.TextUtils.Test)
