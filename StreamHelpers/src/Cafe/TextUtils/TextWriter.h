@@ -57,7 +57,7 @@ namespace Cafe::TextUtils
 					    else
 					    {
 						    writtenBytes +=
-						        m_Stream.WriteBytes(gsl::as_bytes(gsl::make_span(&result.Result, 1)));
+						        m_Stream.WriteBytes(gsl::as_bytes(gsl::span(&result.Result, 1)));
 					    }
 				    }
 				    else

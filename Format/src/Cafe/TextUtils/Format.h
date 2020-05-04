@@ -12,7 +12,7 @@ namespace Cafe::TextUtils
 	CAFE_DEFINE_GENERAL_EXCEPTION(FormatException, ErrorHandling::CafeException);
 
 	/// @return 结果及消费的编码单元数量
-	template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+	template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent>
 	constexpr std::pair<std::uintmax_t, std::size_t>
 	AsciiToNumber(Encoding::StringView<CodePageValue, Extent> const& str, std::size_t base = 10)
 	{
@@ -249,7 +249,7 @@ namespace Cafe::TextUtils
 				// 是 NaN
 				constexpr Encoding::CodePointType NanStr[] = { 'N', 'a', 'N' };
 				Encoding::Encoder<Encoding::CodePage::CodePoint, CodePageValue>::EncodeAll(
-				    gsl::make_span(NanStr), [&](auto const& result) {
+				    gsl::span(NanStr), [&](auto const& result) {
 					    if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
 					                  Encoding::EncodingResultCode::Accept)
 					    {
@@ -358,7 +358,7 @@ namespace Cafe::TextUtils
 		// 不使用索引时自动增加索引并选择参数，不可与使用索引混用
 		std::size_t m_CurrentIndex;
 
-		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+		template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent>
 		static constexpr std::pair<bool, std::size_t>
 		BeginWith(Encoding::StringView<CodePageValue, Extent> const& format,
 		          Encoding::CodePointType codePoint) noexcept
@@ -393,7 +393,7 @@ namespace Cafe::TextUtils
 		}
 
 		// TODO: 是否可针对非编译期的情况优化？例如使用 SIMD
-		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+		template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent>
 		static constexpr std::size_t SkipUntil(Encoding::StringView<CodePageValue, Extent> format,
 		                                       Encoding::CodePointType codePoint) noexcept
 		{
@@ -438,7 +438,7 @@ namespace Cafe::TextUtils
 			return result;
 		}
 
-		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+		template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent>
 		constexpr std::pair<FormatInfo<CodePageValue>, std::size_t>
 		ParseFormatInfo(Encoding::StringView<CodePageValue, Extent> const& format)
 		{
@@ -505,7 +505,7 @@ namespace Cafe::TextUtils
 				if (m_CurrentMode == Mode::IndexMode)
 				{
 					const auto parsedIndex = AsciiToNumber(
-					    Encoding::StringView<CodePageValue, Extent>{ gsl::make_span(indexBegin, prevPos) });
+					    Encoding::StringView<CodePageValue, Extent>{ gsl::span(indexBegin, prevPos) });
 
 					if (parsedIndex.second != std::distance(indexBegin, prevPos))
 					{
@@ -535,7 +535,7 @@ namespace Cafe::TextUtils
 						formatStr = formatStr.SubStr(beginWithFormatRightQuote.second);
 						if (beginWithFormatRightQuote.first)
 						{
-							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{ gsl::make_span(
+							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{ gsl::span(
 								  formatOptionBegin, curPos) };
 							break;
 						}
@@ -552,7 +552,7 @@ namespace Cafe::TextUtils
 		/// @brief  尝试分析格式化信息
 		/// @return 格式化信息、消耗的编码单元个数、跳过的编码单元个数
 		///         跳过的编码单元不计入消耗之中，将会直接跳过，为了处理 escape
-		template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent>
+		template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent>
 		constexpr std::tuple<std::optional<FormatInfo<CodePageValue>>, std::size_t, std::size_t>
 		TryParseFormatInfo(Encoding::StringView<CodePageValue, Extent> const& format)
 		{
@@ -578,7 +578,7 @@ namespace Cafe::TextUtils
 	};
 
 	template <typename OutputReceiver, typename Formatter, typename StringConverter,
-	          Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
+	          Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
 	constexpr void FormatStringWithCustomFormatter(
 	    OutputReceiver&& receiver, Formatter&& formatter, StringConverter&& stringConverter,
 	    Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
@@ -605,7 +605,7 @@ namespace Cafe::TextUtils
 			else if (prevPos != formatStr.end())
 			{
 				std::forward<OutputReceiver>(receiver)(
-				    Encoding::StringView<CodePageValue>{ gsl::make_span(prevPos, formatStr.begin()) });
+				    Encoding::StringView<CodePageValue>{ gsl::span(prevPos, formatStr.begin()) });
 			}
 			else
 			{
@@ -615,7 +615,7 @@ namespace Cafe::TextUtils
 	}
 
 	template <typename OutputReceiver, Encoding::CodePage::CodePageType CodePageValue,
-	          std::ptrdiff_t Extent, typename... Args>
+	          std::size_t Extent, typename... Args>
 	constexpr void FormatStringWithReceiver(OutputReceiver&& receiver,
 	                                        Encoding::StringView<CodePageValue, Extent> const& format,
 	                                        Args const&... args)
@@ -624,7 +624,7 @@ namespace Cafe::TextUtils
 		                                DefaultStringConverter{}, format, args...);
 	}
 
-	template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
+	template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
 	constexpr std::size_t FormatStringSize(Encoding::StringView<CodePageValue, Extent> const& format,
 	                                       Args const&... args)
 	{
@@ -647,7 +647,7 @@ namespace Cafe::TextUtils
 	}
 
 	template <typename Allocator, std::size_t SsoThresholdSize, typename GrowPolicy,
-	          Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
+	          Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
 	Encoding::String<CodePageValue, Allocator, SsoThresholdSize, GrowPolicy>
 	FormatCustomString(Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
 	{
@@ -657,7 +657,7 @@ namespace Cafe::TextUtils
 		return resultStr;
 	}
 
-	template <Encoding::CodePage::CodePageType CodePageValue, std::ptrdiff_t Extent, typename... Args>
+	template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
 	Encoding::String<CodePageValue>
 	FormatString(Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
 	{

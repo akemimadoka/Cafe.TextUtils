@@ -13,7 +13,7 @@ namespace Cafe::TextUtils
 	CAFE_DEFINE_GENERAL_EXCEPTION(EncodingFailedException);
 
 	template <Encoding::CodePage::CodePageType ToCodePage,
-	          Encoding::CodePage::CodePageType FromCodePage, std::ptrdiff_t Extent>
+	          Encoding::CodePage::CodePageType FromCodePage, std::size_t Extent>
 	Encoding::String<ToCodePage> EncodeTo(Encoding::StringView<FromCodePage, Extent> const& str)
 	{
 		if constexpr (FromCodePage == ToCodePage)
@@ -40,7 +40,7 @@ namespace Cafe::TextUtils
 	}
 
 	template <Encoding::CodePage::CodePageType ToCodePage,
-	          Encoding::CodePage::CodePageType FromCodePage, std::ptrdiff_t Extent>
+	          Encoding::CodePage::CodePageType FromCodePage, std::size_t Extent>
 	Encoding::String<ToCodePage>
 	EncodeToWithReplacement(Encoding::StringView<FromCodePage, Extent> str,
 	                        Encoding::CodePointType replacement = 0xFFFD)
@@ -103,7 +103,7 @@ namespace Cafe::TextUtils
 		{
 		}
 
-		return gsl::make_span(str, end - str);
+		return gsl::span(str, end - str);
 	}
 
 #if __has_include(<Cafe/Encoding/RuntimeEncoding.h>)
@@ -153,7 +153,7 @@ namespace Cafe::TextUtils
 	Encoding::String<ToCodePage> EncodeFromNarrow(std::string_view const& str)
 	{
 		return EncodeFromRuntime<ToCodePage>(Environment::GetNarrowEncoding(),
-		                                     gsl::as_bytes(gsl::make_span(str.data(), str.size())));
+		                                     gsl::as_bytes(gsl::span(str.data(), str.size())));
 	}
 
 	template <Encoding::CodePage::CodePageType FromCodePage>
@@ -185,7 +185,7 @@ namespace Cafe::TextUtils
 	Encoding::String<ToCodePage> EncodeFromWide(std::wstring_view const& str)
 	{
 		return EncodeTo<ToCodePage>(Encoding::StringView<Encoding::CodePage::Utf16LittleEndian>(
-		    gsl::make_span(reinterpret_cast<const char16_t*>(str.data()), str.size())));
+		    gsl::span(reinterpret_cast<const char16_t*>(str.data()), str.size())));
 	}
 
 	template <Encoding::CodePage::CodePageType FromCodePage>
@@ -204,7 +204,7 @@ namespace Cafe::TextUtils
 		    typename Encoding::CodePage::CodePageTrait<Encoding::CodePage::Utf8>::CharType;
 		static_assert(sizeof(Utf8CharType) == sizeof(char) && alignof(Utf8CharType) == alignof(char));
 		return EncodeTo<ToCodePage>(Encoding::StringView<Encoding::CodePage::Utf8>(
-		    gsl::make_span(reinterpret_cast<const Utf8CharType*>(str.data()), str.size())));
+		    gsl::span(reinterpret_cast<const Utf8CharType*>(str.data()), str.size())));
 	}
 
 	template <Encoding::CodePage::CodePageType FromCodePage>
@@ -224,7 +224,7 @@ namespace Cafe::TextUtils
 	Encoding::String<ToCodePage> EncodeFromWide(std::wstring_view const& str)
 	{
 		return EncodeTo<ToCodePage>(Encoding::StringView<Encoding::CodePage::CodePoint>(
-		    gsl::make_span(reinterpret_cast<const Encoding::CodePointType*>(str.data()), str.size())));
+		    gsl::span(reinterpret_cast<const Encoding::CodePointType*>(str.data()), str.size())));
 	}
 
 	template <Encoding::CodePage::CodePageType FromCodePage>

@@ -31,12 +31,12 @@ namespace Cafe::TextUtils
 						if constexpr (Read)
 						{
 							return m_Stream.ReadBytes(
-							    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
+							    gsl::as_writable_bytes(gsl::span(&buffer[totalReadSize], 1)));
 						}
 						else
 						{
 							return m_Stream.PeekBytes(
-							    gsl::as_writeable_bytes(gsl::make_span(&buffer[totalReadSize], 1)));
+							    gsl::as_writable_bytes(gsl::span(&buffer[totalReadSize], 1)));
 						}
 					}();
 					if (!readSize)
@@ -59,7 +59,7 @@ namespace Cafe::TextUtils
 
 					Encoding::CodePointType mayBeCodePoint;
 					Encoding::EncodingResultCode resultCode;
-					Trait::ToCodePoint(gsl::make_span(std::as_const(buffer), totalReadSize),
+					Trait::ToCodePoint(gsl::span(std::as_const(buffer), totalReadSize),
 					                   [&](auto const& result) {
 						                   if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
 						                                 Encoding::EncodingResultCode::Accept)
@@ -73,7 +73,7 @@ namespace Cafe::TextUtils
 					{
 					case Encoding::EncodingResultCode::Accept:
 						return { { Encoding::AsView<CodePageValue>(
-							             gsl::make_span(std::as_const(buffer), totalReadSize)),
+							             gsl::span(std::as_const(buffer), totalReadSize)),
 							         mayBeCodePoint } };
 					case Encoding::EncodingResultCode::Incomplete:
 						break;
@@ -88,7 +88,7 @@ namespace Cafe::TextUtils
 			{
 				CharType result;
 				const auto readSize =
-				    m_Stream.ReadBytes(gsl::as_writeable_bytes(gsl::make_span(&result, 1)));
+				    m_Stream.ReadBytes(gsl::as_writable_bytes(gsl::span(&result, 1)));
 				if (readSize == sizeof(CharType))
 				{
 					Encoding::CodePointType mayBeCodePoint;
@@ -103,7 +103,7 @@ namespace Cafe::TextUtils
 					});
 					if (resultCode == Encoding::EncodingResultCode::Accept)
 					{
-						return { { Encoding::AsView<CodePageValue>(gsl::make_span(&std::as_const(result), 1)),
+						return { { Encoding::AsView<CodePageValue>(gsl::span(&std::as_const(result), 1)),
 							         mayBeCodePoint } };
 					}
 				}
