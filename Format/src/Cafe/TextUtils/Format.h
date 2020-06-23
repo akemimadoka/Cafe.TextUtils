@@ -374,14 +374,7 @@ namespace Cafe::TextUtils
 				if constexpr (Encoding::GetEncodingResultCode<decltype(encodingResult)> ==
 				              Encoding::EncodingResultCode::Accept)
 				{
-					if constexpr (Trait::IsVariableWidth)
-					{
-						result = { encodingResult.Result == codePoint, encodingResult.AdvanceCount };
-					}
-					else
-					{
-						result = { encodingResult.Result == codePoint, 1 };
-					}
+					result = { encodingResult.Result == codePoint, encodingResult.AdvanceCount };
 				}
 				else
 				{
@@ -415,16 +408,8 @@ namespace Cafe::TextUtils
 						// 到匹配之时即停止，不消费匹配的值
 						if (!shouldStop)
 						{
-							if constexpr (Trait::IsVariableWidth)
-							{
-								result += encodingResult.AdvanceCount;
-								format = format.SubStr(encodingResult.AdvanceCount);
-							}
-							else
-							{
-								++result;
-								format = format.SubStr(1);
-							}
+							result += encodingResult.AdvanceCount;
+							format = format.SubStr(encodingResult.AdvanceCount);
 						}
 					}
 					else

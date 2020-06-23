@@ -59,14 +59,7 @@ namespace Cafe::TextUtils
 					if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
 					              Encoding::EncodingResultCode::Accept)
 					{
-						if constexpr (Encoding::CodePage::CodePageTrait<FromCodePage>::IsVariableWidth)
-						{
-							str = str.SubStr(result.AdvanceCount);
-						}
-						else
-						{
-							str = str.SubStr(1);
-						}
+						str = str.SubStr(result.AdvanceCount);
 						resultStr.Append(result.Result);
 					}
 					else

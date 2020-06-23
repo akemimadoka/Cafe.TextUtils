@@ -15,7 +15,7 @@ endif()
 add_executable(Cafe.TextUtils.Test ${SOURCE_FILES})
 
 target_link_libraries(Cafe.TextUtils.Test PRIVATE
-    CONAN_PKG::Catch2)
+    CONAN_PKG::catch2)
 
 if(CAFE_INCLUDE_TEXT_UTILS_MISC)
     target_link_libraries(Cafe.TextUtils.Test PRIVATE
