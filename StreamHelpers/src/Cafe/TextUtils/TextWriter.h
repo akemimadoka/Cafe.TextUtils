@@ -31,12 +31,12 @@ namespace Cafe::TextUtils
 		{
 			if constexpr (!sizeof...(args))
 			{
-				return m_Stream.WriteBytes(gsl::as_bytes(format.GetTrimmedSpan()));
+				return m_Stream.WriteBytes(std::as_bytes(format.GetTrimmedSpan()));
 			}
 			else
 			{
 				const auto tmpStr = FormatString(format, args...);
-				return m_Stream.WriteBytes(gsl::as_bytes(tmpStr.GetView().GetTrimmedSpan()));
+				return m_Stream.WriteBytes(std::as_bytes(tmpStr.GetView().GetTrimmedSpan()));
 			}
 		}
 
@@ -52,12 +52,12 @@ namespace Cafe::TextUtils
 				    {
 					    if constexpr (UsingTrait::IsVariableWidth)
 					    {
-						    writtenBytes += m_Stream.WriteBytes(gsl::as_bytes(result.Result));
+						    writtenBytes += m_Stream.WriteBytes(std::as_bytes(result.Result));
 					    }
 					    else
 					    {
 						    writtenBytes +=
-						        m_Stream.WriteBytes(gsl::as_bytes(gsl::span(&result.Result, 1)));
+						        m_Stream.WriteBytes(std::as_bytes(std::span(&result.Result, 1)));
 					    }
 				    }
 				    else

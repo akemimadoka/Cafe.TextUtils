@@ -98,7 +98,7 @@ namespace Cafe::TextUtils
 		{
 		}
 
-		constexpr CodePointIterator(gsl::span<const CharType> const& span) noexcept
+		constexpr CodePointIterator(std::span<const CharType> const& span) noexcept
 		    : m_UnderlyingSpan{ span }
 		{
 		}
@@ -144,7 +144,7 @@ namespace Cafe::TextUtils
 			return m_UnderlyingSpan.empty();
 		}
 
-		constexpr gsl::span<const CharType> const& GetSpan() const noexcept
+		constexpr std::span<const CharType> const& GetSpan() const noexcept
 		{
 			return m_UnderlyingSpan;
 		}
@@ -194,6 +194,6 @@ namespace Cafe::TextUtils
 			}
 		}
 
-		gsl::span<const CharType> m_UnderlyingSpan;
+		std::span<const CharType> m_UnderlyingSpan;
 	};
 } // namespace Cafe::TextUtils

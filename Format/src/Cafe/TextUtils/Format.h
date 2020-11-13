@@ -249,7 +249,7 @@ namespace Cafe::TextUtils
 				// 是 NaN
 				constexpr Encoding::CodePointType NanStr[] = { 'N', 'a', 'N' };
 				Encoding::Encoder<Encoding::CodePage::CodePoint, CodePageValue>::EncodeAll(
-				    gsl::span(NanStr), [&](auto const& result) {
+				    std::span(NanStr), [&](auto const& result) {
 					    if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
 					                  Encoding::EncodingResultCode::Accept)
 					    {
@@ -490,7 +490,7 @@ namespace Cafe::TextUtils
 				if (m_CurrentMode == Mode::IndexMode)
 				{
 					const auto parsedIndex = AsciiToNumber(
-					    Encoding::StringView<CodePageValue, Extent>{ gsl::span(indexBegin, prevPos) });
+					    Encoding::StringView<CodePageValue, Extent>{ std::span(indexBegin, prevPos) });
 
 					if (parsedIndex.second != std::distance(indexBegin, prevPos))
 					{
@@ -520,7 +520,7 @@ namespace Cafe::TextUtils
 						formatStr = formatStr.SubStr(beginWithFormatRightQuote.second);
 						if (beginWithFormatRightQuote.first)
 						{
-							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{ gsl::span(
+							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{ std::span(
 								  formatOptionBegin, curPos) };
 							break;
 						}
@@ -590,7 +590,7 @@ namespace Cafe::TextUtils
 			else if (prevPos != formatStr.end())
 			{
 				std::forward<OutputReceiver>(receiver)(
-				    Encoding::StringView<CodePageValue>{ gsl::span(prevPos, formatStr.begin()) });
+				    Encoding::StringView<CodePageValue>{ std::span(prevPos, formatStr.begin()) });
 			}
 			else
 			{
