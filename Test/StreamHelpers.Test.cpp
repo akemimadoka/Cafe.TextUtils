@@ -27,8 +27,8 @@ TEST_CASE("Cafe.TextUtils.StreamHelpers", "[TextUtils][StreamHelpers]")
 #endif
 
 		const auto internalStorage = stream.GetInternalStorage();
-		REQUIRE(std::memcmp(internalStorage.data(), TestString.GetData(), TestString.GetSize() - 1) ==
-		        0);
+		REQUIRE(std::memcmp(internalStorage.data(), TestString.GetData(),
+		                    TestString.GetSize() - 1) == 0);
 		REQUIRE(internalStorage[internalStorage.size() - 1] == static_cast<std::byte>('\n'));
 
 		stream.SeekFromBegin(0);

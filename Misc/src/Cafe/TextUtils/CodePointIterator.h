@@ -18,13 +18,14 @@ namespace Cafe::TextUtils
 
 			constexpr MaybeCurrentInfoBase() noexcept
 			    : m_CurrentCodePointWidth{ std::numeric_limits<Encoding::CodePointType>::max(),
-				                             std::numeric_limits<std::size_t>::max() }
+				                           std::numeric_limits<std::size_t>::max() }
 			{
 			}
 
 			constexpr bool IsStateValid() const noexcept
 			{
-				return m_CurrentCodePointWidth.first != std::numeric_limits<Encoding::CodePointType>::max();
+				return m_CurrentCodePointWidth.first !=
+				       std::numeric_limits<Encoding::CodePointType>::max();
 			}
 
 			constexpr void ResetState() const noexcept
@@ -165,8 +166,9 @@ namespace Cafe::TextUtils
 						}
 						else
 						{
-							this->m_CurrentCodePointWidth = { OnEncodingFailedPolicy::GetReplacementCodePoint(),
-								                                1 };
+							this->m_CurrentCodePointWidth = {
+								OnEncodingFailedPolicy::GetReplacementCodePoint(), 1
+							};
 						}
 					});
 				}
@@ -177,17 +179,19 @@ namespace Cafe::TextUtils
 			{
 				if (!this->IsStateValid())
 				{
-					UsingCodePageTrait::ToCodePoint(m_UnderlyingSpan[0], [this](auto const& result) {
-						if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
-						              Encoding::EncodingResultCode::Accept)
-						{
-							this->m_CurrentCodePoint = result.Result;
-						}
-						else
-						{
-							this->m_CurrentCodePoint = OnEncodingFailedPolicy::GetReplacementCodePoint();
-						}
-					});
+					UsingCodePageTrait::ToCodePoint(
+					    m_UnderlyingSpan[0], [this](auto const& result) {
+						    if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
+						                  Encoding::EncodingResultCode::Accept)
+						    {
+							    this->m_CurrentCodePoint = result.Result;
+						    }
+						    else
+						    {
+							    this->m_CurrentCodePoint =
+							        OnEncodingFailedPolicy::GetReplacementCodePoint();
+						    }
+					    });
 				}
 
 				return this->m_CurrentCodePoint;

@@ -70,7 +70,8 @@ namespace Cafe::TextUtils
 
 	struct DefaultStringConverter
 	{
-		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue,
+		          typename OutputReceiver>
 		static constexpr void ToString(T const& value,
 		                               Encoding::StringView<CodePageValue> const& formatOption,
 		                               OutputReceiver&& receiver)
@@ -98,10 +99,11 @@ namespace Cafe::TextUtils
 		}
 
 	private:
-		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
-		static constexpr void IntegerToString(T value,
-		                                      Encoding::StringView<CodePageValue> const& formatOption,
-		                                      OutputReceiver&& receiver)
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue,
+		          typename OutputReceiver>
+		static constexpr void
+		IntegerToString(T value, Encoding::StringView<CodePageValue> const& formatOption,
+		                OutputReceiver&& receiver)
 		{
 			// 若 value 是有符号数且是最小值，最后要补加 1
 			[[maybe_unused]] auto isSignedMin = false;
@@ -223,10 +225,11 @@ namespace Cafe::TextUtils
 			}
 		}
 
-		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
-		static constexpr void FloatingToString(T value,
-		                                       Encoding::StringView<CodePageValue> const& formatOption,
-		                                       OutputReceiver&& receiver)
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue,
+		          typename OutputReceiver>
+		static constexpr void
+		FloatingToString(T value, Encoding::StringView<CodePageValue> const& formatOption,
+		                 OutputReceiver&& receiver)
 		{
 			// 有效小数部分
 			std::size_t significantDecimal{ 5 };
@@ -268,7 +271,8 @@ namespace Cafe::TextUtils
 			// TODO: 偷懒做法，bug 很多
 
 			// 输出整数部分
-			IntegerToString(static_cast<std::intmax_t>(value), Encoding::StringView<CodePageValue>{},
+			IntegerToString(static_cast<std::intmax_t>(value),
+			                Encoding::StringView<CodePageValue>{},
 			                std::forward<OutputReceiver>(receiver));
 			if (value < T{})
 			{
@@ -289,7 +293,8 @@ namespace Cafe::TextUtils
 					    }
 				    });
 				value *= Core::Misc::Math::Pow(10, significantDecimal);
-				IntegerToString(static_cast<std::intmax_t>(value), Encoding::StringView<CodePageValue>{},
+				IntegerToString(static_cast<std::intmax_t>(value),
+				                Encoding::StringView<CodePageValue>{},
 				                std::forward<OutputReceiver>(receiver));
 			}
 		}
@@ -301,7 +306,8 @@ namespace Cafe::TextUtils
 		std::stringstream m_InternalBuffer;
 
 	public:
-		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue,
+		          typename OutputReceiver>
 		void ToString(T const& value,
 		              [[maybe_unused]] Encoding::StringView<CodePageValue> const& formatOption,
 		              OutputReceiver&& receiver)
@@ -316,7 +322,8 @@ namespace Cafe::TextUtils
 
 	struct StdToStringStringConverter
 	{
-		template <typename T, Encoding::CodePage::CodePageType CodePageValue, typename OutputReceiver>
+		template <typename T, Encoding::CodePage::CodePageType CodePageValue,
+		          typename OutputReceiver>
 		void ToString(T const& value,
 		              [[maybe_unused]] Encoding::StringView<CodePageValue> const& formatOption,
 		              OutputReceiver&& receiver)
@@ -489,8 +496,9 @@ namespace Cafe::TextUtils
 
 				if (m_CurrentMode == Mode::IndexMode)
 				{
-					const auto parsedIndex = AsciiToNumber(
-					    Encoding::StringView<CodePageValue, Extent>{ std::span(indexBegin, prevPos) });
+					const auto parsedIndex =
+					    AsciiToNumber(Encoding::StringView<CodePageValue, Extent>{
+					        std::span(indexBegin, prevPos) });
 
 					if (parsedIndex.second != std::distance(indexBegin, prevPos))
 					{
@@ -515,13 +523,15 @@ namespace Cafe::TextUtils
 							CAFE_THROW(FormatException, CAFE_UTF8_SV("Invalid format string."));
 						}
 
-						const auto beginWithFormatRightQuote = BeginWith(formatStr, FormatRightQuote);
+						const auto beginWithFormatRightQuote =
+						    BeginWith(formatStr, FormatRightQuote);
 						const auto curPos = formatStr.begin();
 						formatStr = formatStr.SubStr(beginWithFormatRightQuote.second);
 						if (beginWithFormatRightQuote.first)
 						{
-							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{ std::span(
-								  formatOptionBegin, curPos) };
+							result.FormatOptionText = Encoding::StringView<CodePageValue, Extent>{
+								std::span(formatOptionBegin, curPos)
+							};
 							break;
 						}
 					}
@@ -583,7 +593,8 @@ namespace Cafe::TextUtils
 				Core::Misc::RuntimeGet(info.Index, argsTuple, [&](auto const& item) {
 					std::forward<StringConverter>(stringConverter)
 					    .ToString(item, info.FormatOptionText, [&](auto&& str) {
-						    std::forward<OutputReceiver>(receiver)(static_cast<decltype(str)&&>(str));
+						    std::forward<OutputReceiver>(receiver)(
+						        static_cast<decltype(str)&&>(str));
 					    });
 				});
 			}
@@ -601,17 +612,18 @@ namespace Cafe::TextUtils
 
 	template <typename OutputReceiver, Encoding::CodePage::CodePageType CodePageValue,
 	          std::size_t Extent, typename... Args>
-	constexpr void FormatStringWithReceiver(OutputReceiver&& receiver,
-	                                        Encoding::StringView<CodePageValue, Extent> const& format,
-	                                        Args const&... args)
+	constexpr void
+	FormatStringWithReceiver(OutputReceiver&& receiver,
+	                         Encoding::StringView<CodePageValue, Extent> const& format,
+	                         Args const&... args)
 	{
 		FormatStringWithCustomFormatter(std::forward<OutputReceiver>(receiver), DefaultFormatter{},
 		                                DefaultStringConverter{}, format, args...);
 	}
 
 	template <Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
-	constexpr std::size_t FormatStringSize(Encoding::StringView<CodePageValue, Extent> const& format,
-	                                       Args const&... args)
+	constexpr std::size_t
+	FormatStringSize(Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
 	{
 		std::size_t size{};
 		FormatStringWithReceiver(
@@ -634,7 +646,8 @@ namespace Cafe::TextUtils
 	template <typename Allocator, std::size_t SsoThresholdSize, typename GrowPolicy,
 	          Encoding::CodePage::CodePageType CodePageValue, std::size_t Extent, typename... Args>
 	Encoding::String<CodePageValue, Allocator, SsoThresholdSize, GrowPolicy>
-	FormatCustomString(Encoding::StringView<CodePageValue, Extent> const& format, Args const&... args)
+	FormatCustomString(Encoding::StringView<CodePageValue, Extent> const& format,
+	                   Args const&... args)
 	{
 		Encoding::String<CodePageValue, Allocator, SsoThresholdSize, GrowPolicy> resultStr;
 		FormatStringWithReceiver([&](auto const& result) { resultStr.Append(result); }, format,

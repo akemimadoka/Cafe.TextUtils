@@ -55,7 +55,8 @@ namespace Cafe::TextUtils
 			Encoding::String<ToCodePage> resultStr;
 			while (!str.IsEmpty())
 			{
-				Encoding::Encoder<FromCodePage, ToCodePage>::EncodeAll(str, [&](auto const& result) {
+				Encoding::Encoder<FromCodePage, ToCodePage>::EncodeAll(str, [&](auto const&
+				                                                                    result) {
 					if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
 					              Encoding::EncodingResultCode::Accept)
 					{
@@ -195,7 +196,8 @@ namespace Cafe::TextUtils
 	{
 		using Utf8CharType =
 		    typename Encoding::CodePage::CodePageTrait<Encoding::CodePage::Utf8>::CharType;
-		static_assert(sizeof(Utf8CharType) == sizeof(char) && alignof(Utf8CharType) == alignof(char));
+		static_assert(sizeof(Utf8CharType) == sizeof(char) &&
+		              alignof(Utf8CharType) == alignof(char));
 		return EncodeTo<ToCodePage>(Encoding::StringView<Encoding::CodePage::Utf8>(
 		    std::span(reinterpret_cast<const Utf8CharType*>(str.data()), str.size())));
 	}
@@ -205,7 +207,8 @@ namespace Cafe::TextUtils
 	{
 		using Utf8CharType =
 		    typename Encoding::CodePage::CodePageTrait<Encoding::CodePage::Utf8>::CharType;
-		static_assert(sizeof(Utf8CharType) == sizeof(char) && alignof(Utf8CharType) == alignof(char));
+		static_assert(sizeof(Utf8CharType) == sizeof(char) &&
+		              alignof(Utf8CharType) == alignof(char));
 		const auto tmpStr = EncodeTo<Encoding::CodePage::Utf8>(str);
 		return std::string(reinterpret_cast<const char*>(tmpStr.GetData()), tmpStr.GetSize());
 	}

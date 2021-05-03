@@ -41,7 +41,8 @@ namespace Cafe::TextUtils
 		}
 
 		template <typename... Args>
-		std::size_t WriteLine(Encoding::StringView<CodePageValue> const& format, Args const&... args)
+		std::size_t WriteLine(Encoding::StringView<CodePageValue> const& format,
+		                      Args const&... args)
 		{
 			using UsingTrait = Encoding::CodePage::CodePageTrait<CodePageValue>;
 			auto writtenBytes = Write(format, args...);

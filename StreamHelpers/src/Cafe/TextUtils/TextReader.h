@@ -59,22 +59,22 @@ namespace Cafe::TextUtils
 
 					Encoding::CodePointType mayBeCodePoint;
 					Encoding::EncodingResultCode resultCode;
-					Trait::ToCodePoint(std::span(std::as_const(buffer), totalReadSize),
-					                   [&](auto const& result) {
-						                   if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
-						                                 Encoding::EncodingResultCode::Accept)
-						                   {
-							                   mayBeCodePoint = result.Result;
-						                   }
-						                   resultCode = Encoding::GetEncodingResultCode<decltype(result)>;
-					                   });
+					Trait::ToCodePoint(
+					    std::span(std::as_const(buffer), totalReadSize), [&](auto const& result) {
+						    if constexpr (Encoding::GetEncodingResultCode<decltype(result)> ==
+						                  Encoding::EncodingResultCode::Accept)
+						    {
+							    mayBeCodePoint = result.Result;
+						    }
+						    resultCode = Encoding::GetEncodingResultCode<decltype(result)>;
+					    });
 
 					switch (resultCode)
 					{
 					case Encoding::EncodingResultCode::Accept:
 						return { { Encoding::AsView<CodePageValue>(
-							             std::span(std::as_const(buffer), totalReadSize)),
-							         mayBeCodePoint } };
+							           std::span(std::as_const(buffer), totalReadSize)),
+							       mayBeCodePoint } };
 					case Encoding::EncodingResultCode::Incomplete:
 						break;
 					case Encoding::EncodingResultCode::Reject:
@@ -103,8 +103,9 @@ namespace Cafe::TextUtils
 					});
 					if (resultCode == Encoding::EncodingResultCode::Accept)
 					{
-						return { { Encoding::AsView<CodePageValue>(std::span(&std::as_const(result), 1)),
-							         mayBeCodePoint } };
+						return { { Encoding::AsView<CodePageValue>(
+							           std::span(&std::as_const(result), 1)),
+							       mayBeCodePoint } };
 					}
 				}
 				else if (!readSize)
@@ -155,7 +156,8 @@ namespace Cafe::TextUtils
 					const auto peekMayBeNewLineCodePoint = Peek();
 					if (peekMayBeNewLineCodePoint)
 					{
-						const auto [mayBeNewLineCodeUnits, mayBeNewLineCodePoint] = *peekMayBeNewLineCodePoint;
+						const auto [mayBeNewLineCodeUnits, mayBeNewLineCodePoint] =
+						    *peekMayBeNewLineCodePoint;
 						if (mayBeNewLineCodePoint == '\n')
 						{
 							m_Stream.Skip(mayBeNewLineCodeUnits.GetSize());
