@@ -590,13 +590,16 @@ namespace Cafe::TextUtils
 			if (formatInfo.has_value())
 			{
 				const auto info = formatInfo.value();
-				Core::Misc::RuntimeGet(info.Index, argsTuple, [&](auto const& item) {
-					std::forward<StringConverter>(stringConverter)
-					    .ToString(item, info.FormatOptionText, [&](auto&& str) {
-						    std::forward<OutputReceiver>(receiver)(
-						        static_cast<decltype(str)&&>(str));
-					    });
-				});
+				if (!Core::Misc::RuntimeGet(info.Index, argsTuple, [&](auto const& item) {
+					    std::forward<StringConverter>(stringConverter)
+					        .ToString(item, info.FormatOptionText, [&](auto&& str) {
+						        std::forward<OutputReceiver>(receiver)(
+						            static_cast<decltype(str)&&>(str));
+					        });
+				    }))
+				{
+					CAFE_THROW(FormatException, CAFE_UTF8_SV("Index out of range."));
+				}
 			}
 			else if (prevPos != formatStr.end())
 			{
