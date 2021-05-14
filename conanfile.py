@@ -24,6 +24,7 @@ class CafeTextUtilsConan(ConanFile):
     default_options = {opt[0]: opt[2] for opt in Options}
 
     requires = "Cafe.Encoding/0.1", "Cafe.ErrorHandling/0.1", "Cafe.Environment/0.1"
+    python_requires = "CafeCommon/0.1"
 
     generators = "cmake"
 
@@ -44,6 +45,9 @@ class CafeTextUtilsConan(ConanFile):
         with tools.vcvars(self.settings, filter_known_paths=False) if self.settings.compiler == 'Visual Studio' else tools.no_op():
             cmake = self.configure_cmake()
             cmake.install()
+
+    def package_info(self):
+        self.python_requires["CafeCommon"].module.addCafeSharedCompileOptions(self)
 
     def package_id(self):
         self.info.header_only()

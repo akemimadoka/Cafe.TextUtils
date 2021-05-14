@@ -11,6 +11,8 @@ target_link_libraries(Cafe.TextUtils.Format INTERFACE
     CONAN_PKG::Cafe.TextUtils
 )
 
+AddCafeSharedFlags(Cafe.TextUtils.Format)
+
 install(TARGETS Cafe.TextUtils.Format
     EXPORT TextUtils.Format
 )
