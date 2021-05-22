@@ -8,8 +8,10 @@ target_include_directories(Cafe.TextUtils.Format INTERFACE
 target_link_libraries(Cafe.TextUtils.Format INTERFACE
     CONAN_PKG::Cafe.Encoding
     CONAN_PKG::Cafe.ErrorHandling
-    CONAN_PKG::Cafe.TextUtils
+    Cafe.TextUtils.Misc
 )
+
+target_compile_features(Cafe.TextUtils.Format INTERFACE cxx_std_20)
 
 AddCafeSharedFlags(Cafe.TextUtils.Format)
 

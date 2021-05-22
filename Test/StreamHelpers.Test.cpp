@@ -1,7 +1,7 @@
 #include <Cafe/Io/Streams/MemoryStream.h>
 #include <Cafe/TextUtils/TextReader.h>
 #include <Cafe/TextUtils/TextWriter.h>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace Cafe;
 using namespace Encoding;
@@ -29,7 +29,8 @@ TEST_CASE("Cafe.TextUtils.StreamHelpers", "[TextUtils][StreamHelpers]")
 		const auto internalStorage = stream.GetInternalStorage();
 		REQUIRE(std::memcmp(internalStorage.data(), TestString.GetData(),
 		                    TestString.GetSize() - 1) == 0);
-		REQUIRE(internalStorage[internalStorage.size() - 1] == static_cast<std::byte>('\n'));
+		REQUIRE(static_cast<std::uint8_t>(internalStorage[internalStorage.size() - 1]) ==
+		        static_cast<std::uint8_t>('\n'));
 
 		stream.SeekFromBegin(0);
 

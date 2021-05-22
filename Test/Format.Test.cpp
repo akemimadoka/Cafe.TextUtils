@@ -1,5 +1,5 @@
 #include <Cafe/TextUtils/Format.h>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace Cafe;
 using namespace TextUtils;

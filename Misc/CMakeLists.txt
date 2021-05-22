@@ -11,6 +11,8 @@ target_link_libraries(Cafe.TextUtils.Misc INTERFACE
     CONAN_PKG::Cafe.Environment
 )
 
+target_compile_features(Cafe.TextUtils.Misc INTERFACE cxx_std_20)
+
 AddCafeSharedFlags(Cafe.TextUtils.Misc)
 
 install(TARGETS Cafe.TextUtils.Misc

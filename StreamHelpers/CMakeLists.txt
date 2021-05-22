@@ -9,6 +9,8 @@ target_link_libraries(Cafe.TextUtils.StreamHelpers
     INTERFACE CONAN_PKG::Cafe.Io Cafe.TextUtils.Format
 )
 
+target_compile_features(Cafe.TextUtils.StreamHelpers INTERFACE cxx_std_20)
+
 AddCafeSharedFlags(Cafe.TextUtils.StreamHelpers)
 
 install(TARGETS Cafe.TextUtils.StreamHelpers
