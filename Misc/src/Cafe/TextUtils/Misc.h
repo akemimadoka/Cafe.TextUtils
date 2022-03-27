@@ -4,8 +4,8 @@
 #include <Cafe/ErrorHandling/ErrorHandling.h>
 
 #if __has_include(<Cafe/Encoding/RuntimeEncoding.h>)
-#	include <Cafe/Encoding/RuntimeEncoding.h>
-#	include <Cafe/Misc/Environment.h>
+#include <Cafe/Encoding/RuntimeEncoding.h>
+#include <Cafe/Misc/Environment.h>
 #endif
 
 namespace Cafe::TextUtils
@@ -142,7 +142,7 @@ namespace Cafe::TextUtils
 		return resultVec;
 	}
 
-#	ifdef _WIN32
+#ifdef _WIN32
 	template <Encoding::CodePage::CodePageType ToCodePage>
 	Encoding::String<ToCodePage> EncodeFromNarrow(std::string_view const& str)
 	{
@@ -169,7 +169,7 @@ namespace Cafe::TextUtils
 		    });
 		return resultStr;
 	}
-#	endif
+#endif
 #endif
 
 #ifdef _WIN32
