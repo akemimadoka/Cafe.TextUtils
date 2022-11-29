@@ -32,7 +32,7 @@ class CafeTextUtilsConan(ConanFile):
 
     def requirements(self):
         if self.options.CAFE_INCLUDE_TESTS:
-            self.requires("catch2/3.0.0@catchorg/stable", private=True)
+            self.requires("catch2/3.2.0", private=True)
         if self.options.CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS:
             self.requires("Cafe.Io/0.1")
 

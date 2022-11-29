@@ -32,4 +32,4 @@ if(CAFE_INCLUDE_TEXT_UTILS_STREAM_HELPERS)
         Cafe.TextUtils.StreamHelpers)
 endif()
 
-ParseAndAddCatchTests(Cafe.TextUtils.Test)
+catch_discover_tests(Cafe.TextUtils.Test)
